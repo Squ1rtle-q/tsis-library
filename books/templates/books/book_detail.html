@@ -1,0 +1,62 @@
+{% extends "books/base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row g-4 align-items-start">
+        <div class="col-md-8">
+            <h1 class="mb-3">{{ book.title }}</h1>
+
+            <p><strong>Автор:</strong> {{ book.author }}</p>
+
+            {% if book.category %}
+                <p><strong>Категория:</strong> {{ book.category }}</p>
+            {% endif %}
+
+            {% if book.owner %}
+                <p><strong>Добавил:</strong> {{ book.owner.username }}</p>
+            {% endif %}
+
+            {% if book.description %}
+                <p class="mt-3">{{ book.description }}</p>
+            {% else %}
+                <p class="mt-3 text-muted">Описание пока не задано.</p>
+            {% endif %}
+
+            <div class="mt-4 d-flex flex-wrap gap-2">
+                {% if book.is_external and book.info_url %}
+                    <a href="{{ book.info_url }}" target="_blank" rel="noopener noreferrer"
+                       class="btn btn-sm btn-outline-primary">
+                        Подробнее о книге
+                    </a>
+                {% endif %}
+
+                {% if book.is_external and book.buy_url %}
+                    <a href="{{ book.buy_url }}" target="_blank" rel="noopener noreferrer"
+                       class="btn btn-sm btn-outline-success">
+                        Купить
+                    </a>
+                {% endif %}
+
+                {% if request.user.is_authenticated %}
+                    {% if request.user.is_superuser or not book.is_external and book.owner == request.user %}
+                        <a href="{% url 'edit_book' book.pk %}" class="btn btn-edit ms-md-3">
+                            Редактировать
+                        </a>
+                        <a href="{% url 'delete_book' book.pk %}" class="btn btn-delete">
+                            Удалить
+                        </a>
+                    {% endif %}
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="col-md-4 d-flex justify-content-md-end justify-content-center">
+            {% if book.image %}
+                <img src="{{ book.image.url }}" alt="{{ book.title }}"
+                     class="img-fluid shadow-sm"
+                     style="max-height: 360px; object-fit: cover; border-radius: 12px;">
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

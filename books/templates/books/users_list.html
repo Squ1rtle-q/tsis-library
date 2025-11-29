@@ -1,0 +1,33 @@
+{% extends 'books/base.html' %}
+
+{% block content %}
+<h1 class="mb-3">Пользователи</h1>
+<ul class="list-group">
+    {% for user in users %}
+        <li class="list-group-item d-flex align-items-center mb-2">
+            <div class="me-3">
+                {% if user.profile.avatar %}
+                    <img src="{{ user.profile.avatar.url }}" alt="{{ user.username }}"
+                         class="img-thumbnail rounded-circle" style="width:60px; height:60px; object-fit:cover;">
+                {% else %}
+                    <div class="rounded-circle bg-light d-flex align-items-center justify-content-center"
+                         style="width:60px; height:60px;">
+                        <span class="text-muted small">Нет аватара</span>
+                    </div>
+                {% endif %}
+            </div>
+            <div class="flex-grow-1">
+                <a href="{% url 'user_profile' user.id %}">
+                    <strong>{{ user.username }}</strong>
+                </a><br>
+                <small>{{ user.email }}</small>
+            </div>
+            <span class="badge rounded-pill bg-primary">
+                {{ user.books.count }} книг
+            </span>
+        </li>
+    {% empty %}
+        <li class="list-group-item">Нет пользователей.</li>
+    {% endfor %}
+</ul>
+{% endblock %}

@@ -1,0 +1,84 @@
+{% extends 'books/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-3">Личный кабинет {{ request.user.username }}
+        {{ request.user.username }}
+        {% if request.user.is_superuser %}
+        <span class="badge badge-superuser" title="Администратор">★</span>
+        {% endif %}
+    </h1>
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card shadow-sm mb-4">
+                <div class="card-body text-center">
+                    {% if profile.avatar %}
+                        <img src="{{ profile.avatar.url }}" alt="Аватар"
+                             class="img-thumbnail mb-2" style="max-width: 180px;">
+                    {% else %}
+                        <div class="border rounded bg-light d-flex align-items-center justify-content-center mb-2"
+                             style="width: 180px; height: 180px;">
+                            <span class="text-muted">Аватар не загружен</span>
+                        </div>
+                    {% endif %}
+
+                    <p class="mb-1"><strong>Имя пользователя:</strong> {{ request.user.username }}</p>
+                    <p class="mb-1"><strong>Электронная почта:</strong> {{ request.user.email }}</p>
+
+                    <hr class="my-3">
+
+                    <h5 class="mb-3">Обновить аватар</h5>
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="{{ form.avatar.id_for_label }}" class="form-label">Аватар</label>
+                            {{ form.avatar }}
+                            {{ form.avatar.errors }}
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">Сохранить изменения</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-8">
+            <h4 class="mb-3">Мои книги</h4>
+            {% if user_books %}
+                <ul class="list-group">
+                    {% for book in user_books %}
+                        <li class="list-group-item mb-2">
+                            <div class="row g-2 align-items-center">
+                                <div class="col-auto">
+                                    {% if book.image %}
+                                        <img src="{{ book.image.url }}" alt="{{ book.title }}"
+                                            class="img-thumbnail" style="max-width:80px;">
+                                    {% else %}
+                                        <div class="border bg-light d-flex align-items-center justify-content-center"
+                                            style="width:80px; height:110px;">
+                                            <span class="text-muted small">Нет обложки</span>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="col">
+                                    <a href="{% url 'book_detail' book.pk %}">
+                                        <strong>{{ book.title }}</strong>
+                                    </a><br>
+                                    <small>Автор: {{ book.author }}</small><br>
+                                    <small>Категория: {{ book.category }}</small>
+                                </div>
+                                <div class="col-auto">
+                                    <a href="{% url 'edit_book' book.pk %}" class="btn btn-sm btn-warning">Редактировать</a>
+                                    <a href="{% url 'delete_book' book.pk %}" class="btn btn-sm btn-danger">Удалить</a>
+                                </div>
+                            </div>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p>Вы ещё не добавили ни одной книги.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,274 @@
+{% extends "books/base.html" %}
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="mb-0">Онлайн библиотека</h1>
+
+        {% if request.user.is_superuser %}
+            <a href="{% url 'import_russian_books' %}"
+               class="btn btn-outline-light">
+                Импортировать книги
+            </a>
+        {% endif %}
+    </div>
+
+    <form method="get" class="row g-2 mb-3">
+        <div class="col-md-4">
+            <input type="text" name="q" value="{{ query }}" class="form-control" placeholder="Поиск по названию">
+        </div>
+        <div class="col-md-3">
+            <select name="author" class="form-select">
+                <option value="">Все авторы</option>
+                {% for a in authors %}
+                    <option value="{{ a.name }}" {% if author_name == a.name %}selected{% endif %}>
+                        {{ a.name }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-3">
+            <select name="category" class="form-select">
+                <option value="">Все категории</option>
+                {% for category in categories %}
+                    <option value="{{ category.id }}" {% if cat_id|default_if_none:'' == category.id|stringformat:"s" %}selected{% endif %}>
+                        {{ category.name }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-2 d-grid">
+            <button type="submit" class="btn btn-primary">Искать</button>
+        </div>
+    </form>
+
+    <ul class="nav nav-tabs mb-3">
+        <li class="nav-item">
+            <a class="nav-link {% if active_tab == 'local' %}active{% endif %}"
+               href="?tab=local{% if query %}&q={{ query }}{% endif %}{% if cat_id %}&category={{ cat_id }}{% endif %}{% if author_name %}&author={{ author_name }}{% endif %}">
+                Книги на сайте
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {% if active_tab == 'external' %}active{% endif %}"
+               href="?tab=external{% if query %}&q={{ query }}{% endif %}{% if cat_id %}&category={{ cat_id }}{% endif %}{% if author_name %}&author={{ author_name }}{% endif %}">
+                Книги из библиотеки
+            </a>
+        </li>
+    </ul>
+
+    {% if current_category %}
+        <p class="text-muted mb-2">Текущая категория: {{ current_category.name }}</p>
+    {% endif %}
+
+    <div class="row g-3">
+        {% for book in books %}
+            <div class="col-6 col-md-3 d-flex">
+                <div class="card w-100 d-flex flex-column h-100">
+                    {% if book.image %}
+                        <img src="{{ book.image.url }}"
+                            class="card-img-top"
+                            alt="{{ book.title }}"
+                            style="height: 220px; object-fit: cover;">
+                    {% endif %}
+
+                    <div class="card-body d-flex flex-column">
+                        <div class="mb-2" style="min-height: 90px;">
+                            <h6 class="card-title mb-1">{{ book.title }}</h6>
+                            <p class="card-text mb-1">
+                                <small class="text-muted">Автор: {{ book.author }}</small>
+                            </p>
+                            {% if book.category %}
+                                <p class="card-text mb-0">
+                                    <small class="text-muted">Категория: {{ book.category }}</small>
+                                </p>
+                            {% endif %}
+                        </div>
+
+                        <a href="{% url 'book_detail' book.pk %}"
+                        class="btn btn-sm btn-primary mt-auto">
+                            Подробнее
+                        </a>
+
+                        {% if book.is_external and book.info_url %}
+                            <a href="{{ book.info_url }}" target="_blank" rel="noopener noreferrer"
+                            class="btn btn-sm btn-outline-primary mt-2">
+                                Подробнее о книге
+                            </a>
+                        {% endif %}
+
+                        {% if book.is_external and book.buy_url %}
+                            <a href="{{ book.buy_url }}" target="_blank" rel="noopener noreferrer"
+                            class="btn btn-sm btn-outline-success mt-2">
+                                Купить
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+        {% if page_obj %}
+    {% with page=page_obj.number last=page_obj.paginator.num_pages %}
+
+    <nav aria-label="Навигация по страницам" class="mt-3">
+        <ul class="pagination pagination-sm flex-wrap justify-content-center">
+
+            {# назад #}
+            {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link"
+                       href="?tab=external&page={{ page_obj.previous_page_number }}{% if query %}&q={{ query }}{% endif %}{% if cat_id %}&category={{ cat_id }}{% endif %}{% if author_name %}&author={{ author_name }}{% endif %}">
+                        «
+                    </a>
+                </li>
+            {% else %}
+                <li class="page-item disabled"><span class="page-link">«</span></li>
+            {% endif %}
+
+            {# первая страница #}
+            <li class="page-item {% if page == 1 %}active{% endif %}">
+                <a class="page-link"
+                   href="?tab=external&page=1{% if query %}&q={{ query }}{% endif %}{% if cat_id %}&category={{ cat_id }}{% endif %}{% if author_name %}&author={{ author_name }}{% endif %}">
+                    1
+                </a>
+            </li>
+
+            {# ----- страница 1 и 2: 1 2 3 ... last ----- #}
+            {% if page == 1 or page == 2 %}
+
+                {% if last >= 2 %}
+                    <li class="page-item {% if page == 2 %}active{% endif %}">
+                        <a class="page-link"
+                           href="?tab=external&page=2{% if query %}&q={{ query }}{% endif %}{% if cat_id %}&category={{ cat_id }}{% endif %}{% if author_name %}&author={{ author_name }}{% endif %}">
+                            2
+                        </a>
+                    </li>
+                {% endif %}
+                {% if last >= 3 %}
+                    <li class="page-item {% if page == 3 %}active{% endif %}">
+                        <a class="page-link"
+                           href="?tab=external&page=3{% if query %}&q={{ query }}{% endif %}{% if cat_id %}&category={{ cat_id }}{% endif %}{% if author_name %}&author={{ author_name }}{% endif %}">
+                            3
+                        </a>
+                    </li>
+                {% endif %}
+                {% if last > 3 %}
+                    <li class="page-item disabled"><span class="page-link">…</span></li>
+                {% endif %}
+
+            {# ----- страница 3: 1 ... 2 3 4 ... last ----- #}
+            {% elif page == 3 %}
+
+                <li class="page-item disabled"><span class="page-link">…</span></li>
+
+                {% if last >= 2 %}
+                    <li class="page-item">
+                        <a class="page-link"
+                           href="?tab=external&page=2{% if query %}&q={{ query }}{% endif %}{% if cat_id %}&category={{ cat_id }}{% endif %}{% if author_name %}&author={{ author_name }}{% endif %}">
+                            2
+                        </a>
+                    </li>
+                {% endif %}
+
+                <li class="page-item active">
+                    <a class="page-link"
+                       href="?tab=external&page=3{% if query %}&q={{ query }}{% endif %}{% if cat_id %}&category={{ cat_id }}{% endif %}{% if author_name %}&author={{ author_name }}{% endif %}">
+                        3
+                    </a>
+                </li>
+
+                {% if last >= 4 %}
+                    <li class="page-item">
+                        <a class="page-link"
+                           href="?tab=external&page=4{% if query %}&q={{ query }}{% endif %}{% if cat_id %}&category={{ cat_id }}{% endif %}{% if author_name %}&author={{ author_name }}{% endif %}">
+                            4
+                        </a>
+                    </li>
+                {% endif %}
+
+                {% if last > 4 %}
+                    <li class="page-item disabled"><span class="page-link">…</span></li>
+                {% endif %}
+
+            {# ----- «середина»: 4,5,... last-2 : 1 ... (p-1) p (p+1) ... last ----- #}
+            {% elif page >= 4 and page <= last|add:"-2" %}
+
+                <li class="page-item disabled"><span class="page-link">…</span></li>
+
+                {% with prev=page|add:"-1" next=page|add:"1" %}
+                    <li class="page-item">
+                        <a class="page-link"
+                           href="?tab=external&page={{ prev }}{% if query %}&q={{ query }}{% endif %}{% if cat_id %}&category={{ cat_id }}{% endif %}{% if author_name %}&author={{ author_name }}{% endif %}">
+                            {{ prev }}
+                        </a>
+                    </li>
+                    <li class="page-item active">
+                        <a class="page-link"
+                           href="?tab=external&page={{ page }}{% if query %}&q={{ query }}{% endif %}{% if cat_id %}&category={{ cat_id }}{% endif %}{% if author_name %}&author={{ author_name }}{% endif %}">
+                            {{ page }}
+                        </a>
+                    </li>
+                    {% if next < last %}
+                        <li class="page-item">
+                            <a class="page-link"
+                               href="?tab=external&page={{ next }}{% if query %}&q={{ query }}{% endif %}{% if cat_id %}&category={{ cat_id }}{% endif %}{% if author_name %}&author={{ author_name }}{% endif %}">
+                                {{ next }}
+                            </a>
+                        </li>
+                    {% endif %}
+                {% endwith %}
+
+                {% if page < last|add:"-1" %}
+                    <li class="page-item disabled"><span class="page-link">…</span></li>
+                {% endif %}
+
+            {% endif %}
+
+            {# ----- хвост: показываем соседей перед last для страниц last-1 и last ----- #}
+            {% if page >= last|add:"-1" and last > 3 %}
+                <li class="page-item disabled"><span class="page-link">…</span></li>
+
+                {% if last|add:"-2" > 1 %}
+                    <li class="page-item {% if page == last|add:"-2" %}active{% endif %}">
+                        <a class="page-link"
+                           href="?tab=external&page={{ last|add:"-2" }}{% if query %}&q={{ query }}{% endif %}{% if cat_id %}&category={{ cat_id }}{% endif %}{% if author_name %}&author={{ author_name }}{% endif %}">
+                            {{ last|add:"-2" }}
+                        </a>
+                    </li>
+                {% endif %}
+
+                <li class="page-item {% if page == last|add:"-1" %}active{% endif %}">
+                    <a class="page-link"
+                       href="?tab=external&page={{ last|add:"-1" }}{% if query %}&q={{ query }}{% endif %}{% if cat_id %}&category={{ cat_id }}{% endif %}{% if author_name %}&author={{ author_name }}{% endif %}">
+                        {{ last|add:"-1" }}
+                    </a>
+                </li>
+            {% endif %}
+ {# последняя страница (всегда в самом конце, всегда ведёт на last) #}
+            {% if last > 1 %}
+                <li class="page-item {% if page == last %}active{% endif %}">
+                    <a class="page-link"
+                       href="?tab=external&page={{ last }}{% if query %}&q={{ query }}{% endif %}{% if cat_id %}&category={{ cat_id }}{% endif %}{% if author_name %}&author={{ author_name }}{% endif %}">
+                        {{ last }}
+                    </a>
+                </li>
+            {% endif %}
+
+            {# вперёд #}
+            {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link"
+                       href="?tab=external&page={{ page_obj.next_page_number }}{% if query %}&q={{ query }}{% endif %}{% if cat_id %}&category={{ cat_id }}{% endif %}{% if author_name %}&author={{ author_name }}{% endif %}">
+                        »
+                    </a>
+                </li>
+            {% else %}
+                <li class="page-item disabled"><span class="page-link">»</span></li>
+            {% endif %}
+        </ul>
+    </nav>
+
+    {% endwith %}
+{% endif %}
+</div>
+{% endblock %}

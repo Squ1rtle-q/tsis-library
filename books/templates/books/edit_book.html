@@ -1,0 +1,42 @@
+{% extends "books/base.html" %}
+{% block content %}
+<h1 class="mb-4">Редактировать книгу</h1>
+
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    <div class="mb-3">
+        {{ form.title.label_tag }}{{ form.title }}
+    </div>
+    <div class="mb-3">
+        {{ form.author.label_tag }}{{ form.author }}
+    </div>
+    <div class="mb-3">
+        {{ form.description.label_tag }}{{ form.description }}
+    </div>
+    <div class="mb-3">
+        {{ form.category.label_tag }}{{ form.category }}
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Обложка:</label>
+        {% if form.instance.image %}
+            <div class="mb-2">
+                <img src="{{ form.instance.image.url }}" alt="{{ form.instance.title }}" class="img-thumbnail" style="max-width:120px;">
+                <button type="submit" name="delete_cover" value="1" class="btn btn-danger btn-sm ms-2">
+                    Удалить обложку
+                </button>
+                <span class="text-muted small">Текущий файл: {{ form.instance.image.name }}</span>
+            </div>
+        {% endif %}
+        <div class="mt-2">
+            <label class="form-label" for="id_image">Загрузить новую обложку:</label>
+            <input type="file" name="image" id="id_image" class="form-control">
+        </div>
+    </div>
+
+    <button type="submit" class="btn btn-primary mt-2">Сохранить изменения</button>
+</form>
+
+<a href="{% url 'home' %}" class="btn btn-link mt-3">Назад к списку</a>
+{% endblock %}

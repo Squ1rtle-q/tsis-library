@@ -1,0 +1,30 @@
+{% extends "books/base.html" %}
+{% block content %}
+    <h1 class="mb-4">Добавить новую книгу</h1>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <div class="mb-3">
+            {{ form.title.label_tag }}{{ form.title }}
+        </div>
+        <div class="mb-3">
+            {{ form.author.label_tag }}{{ form.author }}
+        </div>
+        <div class="mb-3">
+            {{ form.description.label_tag }}{{ form.description }}
+        </div>
+        <div class="mb-3">
+            {{ form.category.label_tag }}{{ form.category }}
+        </div>
+        <div class="mb-3">
+            <label class="form-label" for="{{ form.image.id_for_label }}">Обложка:</label>
+            {{ form.image }}
+            {% if form.image.errors %}
+                <div class="text-danger">{{ form.image.errors }}</div>
+            {% endif %}
+        </div>
+
+        <button type="submit" class="btn btn-success mt-2">Сохранить</button>
+    </form>
+    <a href="{% url 'home' %}" class="btn btn-link mt-3">Назад к списку</a>
+{% endblock %}
